@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Gear Solver</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+	<link rel="stylesheet" href="OpenJsCad/openjscad.css" type="text/css">
+	<style>
+	.ng-invalid.form-control {
+	    border-color: #a94442;
+	    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+	    box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+	}
+	
+	polygon, polyline {
+		stroke: black;
+		fill: transparent;
+	}
+	
+	</style>
+</head>
+<body ng-app="GearSolverApp">
+
+	<div class="container" ng-cloak ng-controller="GearSolverCtrl">
+		<form name="form">
+		  <div class="form-group">
+		    <label for="ratio">Ratio</label>
+		    <input type="number" class="form-control" id="ratio" min="0" step="0.000000000000001" ng-model="options.ratio" />
+		  </div>
+		  <div class="form-group">
+		    <label for="timeout">Timeout (milliseconds)</label>
+		    <input type="number" class="form-control" id="timeout" min="1000" max="60000" step="1" ng-model="options.timeout" />
+		  </div>
+		  <div class="form-group">
+		    <label for="precision">Precision (number of decimal points)</label>
+		    <input type="number" class="form-control" id="precision" min="0" max="15" step="1" ng-model="options.precision" />
+		  </div>
+		  <div class="form-group">
+		    <label for="maxDepth">Max Search Depth (higher numbers may timeout, and make larger gear trains)</label>
+		    <input type="number" class="form-control" id="maxDepth" min="1" max="100" step="1" ng-model="options.maxDepth" />
+		  </div>
+		  <div class="form-group">
+		    <label for="minTeeth">Minimum Allowed Teeth</label>
+		    <input type="number" class="form-control" id="minTeeth" min="4" step="1" ng-model="options.minTeeth" />
+		  </div>
+		  <div class="form-group">
+		    <label for="maxTeeth">Maximum Allowed Teeth</label>
+		    <input type="number" class="form-control" id="maxTeeth" min="5" step="1" ng-model="options.maxTeeth" />
+		  </div>
+		  <div class="checkbox">
+		    <label><input type="checkbox" ng-model="options.allowFixedRing"/> Allow Fixed Ring Planetary</label>
+			<label><input type="checkbox" ng-model="options.allowFixedSun"/> Allow Fixed Sun Planetary</label>
+			<label><input type="checkbox" ng-model="options.allowFixedPlanet"/> Allow Fixed Planet Planetary</label>
+			<label><input type="checkbox" ng-model="options.allowSpur"/> Allow Non-Planetary Spur</label>
+		  </div>
+		  <button type="submit" class="btn btn-default" ng-disabled="!form.$valid" ng-click="solve()">
+		  	{{isStale ? '*' : ''}} Solve
+		  </button>
+		</form>
+		
+		<div class="col-md-12" ng-show="isSolved">
+			<div ng-show="!train">No solution or timed out</div>
+			<div ng-show="train">
+				<p>
+					<strong>Solution for a compound gear train with the ratio {{options.ratio}}</strong><br />
+					Each row is a single set of gears that should be compounded into the next set
+				</p>
+				<ul ng-repeat="g in train track by $index">
+					<li>
+						<span ng-if="g.type == 'planetary'">
+							Planetary (
+								Ring: {{g.r}}, 
+								Sun: {{g.s}}, 
+								Planet: {{g.p}}) (Input: {{g.inputGear}}, Output: {{g.outputGear}}, Fixed: {{g.fixedGear}}) (Ratio: {{g.ratio}})
+						</span>
+						<span ng-if="g.type == 'spur'">
+							Spur Pair (
+								T1: {{g.a}}, 
+								T2: {{g.b}}) (Ratio: {{g.ratio}})
+						</span>
+					</li>
+				</ul>
+				<button type="button" class="btn btn-default" ng-disabled="isRendering" ng-click="render()">Render</button>
+				<gs-svg train="train"></gs-svg>
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript" src="OpenJsCad/lightgl.js" ></script>
+	<script type="text/javascript" src="OpenJsCad/csg.js"></script>
+	<script type="text/javascript" src="OpenJsCad/openjscad.js"></script>
+    
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
+	<script src="gearRender.js"></script>
+	<script src="gearSolver.js"></script>
+	
+	<script type="text/javascript">
+		/*
+		var gProcessor=null;
+		// Show all exceptions to the user:
+		OpenJsCad.AlertUserOfUncaughtExceptions();
+		function getProcessor()
+		{
+			if(gProcessor)
+				return gProcessor;
+			var viewerOptions = {
+				drawAxes: false,
+				rotateZX: false,
+				rotateXY: false
+			}
+			gProcessor = new OpenJsCad.Processor(document.getElementById("viewer"), viewerOptions);
+			//gProcessor.setDebugging(true);
+			return gProcessor;
+		}
+		$(document).ready(function(){
+			var g = new Gear({
+					circularPitch: 8,
+					pressureAngle: 20,
+					clearance: 0.05,
+					backlash: 0.05,
+					toothCount: 30,
+					centerHoleDiameter: 4,
+					profileShift: -0,
+					qualitySettings: 3,
+					qualitySettings: {resolution: 10, stepsPerToothAngle: 3}
+				}).getZeroedShape();
+			
+			var bounds = g.getBounds();
+			
+			var w = Math.abs(bounds[0].x) + Math.abs(bounds[1].x);
+			var h = Math.abs(bounds[0].y) + Math.abs(bounds[1].y);
+			
+			var dx = 0;
+			var dy = 0;
+			
+			if(bounds[0].x < 0)
+				dx = Math.abs(bounds[0].x);
+			if(bounds[0].y < 0)
+				dy = Math.abs(bounds[0].y);
+			
+			var svg = $('<svg version="1.1" xmlns="http://www.w3.org/2000/svg">')
+				.attr('width', w)
+				.attr('height', h);
+			
+			if(dx || dy)
+				svg.attr('transform', 'translate(' + dx + ', ' + dy + ')');
+			
+			g.getOutlinePaths().map(function(path) {
+				console.log(path);
+				var numpoints_closed = path.points.length + (path.closed ? 1 : 0);
+				var p = path.closed ? $('<polygon stroke="black" fill="transparent">') : $('<polyline stroke="black" fill="none">');
+				var ln = [];
+				
+				//str += "  0\nLWPOLYLINE\n  8\nOpenJsCad\n  90\n" + numpoints_closed + "\n  70\n" + (path.closed ? 1 : 0) + "\n";
+				for(var pointindex = 0; pointindex < path.points.length; pointindex++) {
+					//var pointindexwrapped = pointindex;
+					//if(pointindexwrapped >= path.points.length) pointindexwrapped -= path.points.length;
+					var point = path.points[pointindex];
+					ln.push(point.x.toFixed(7));
+					ln.push(point.y.toFixed(7));
+					//str += " 10\n" + point.x + "\n 20\n" + point.y + "\n 30\n0.0\n";
+				}
+				p.attr('points', ln.join(' '));
+				svg.append(p);
+			});
+			
+			$('#test').append(svg);
+		});*/
+		
+	</script>
+	
+</body>
+</html>
