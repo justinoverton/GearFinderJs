@@ -74,8 +74,13 @@ GearSolver.prototype.findTrain = function(ratio, start, maxDepth) {
 		return [found];
 	
 	//multiply ratio by precision to remove decimals
-	var numer = ratio * Math.pow(10, this.options.precision);
-	var denomer = Math.pow(10, this.options.precision);
+	var numer = ratio;// * Math.pow(10, this.options.precision);
+	var denomer = 1; //Math.pow(10, this.options.precision);
+	
+	while(numer % 1 !== 0) {
+		numer *= 10;
+		denomer *= 10;
+	}
 	
 	/*
 	Simple example of what's going on here
@@ -103,34 +108,34 @@ GearSolver.prototype.findTrain = function(ratio, start, maxDepth) {
 	(52/50) = 1.04
 	1.04 * (2/1) = 1.04 * 2) = 2.08
 	*/
-	var self = this;
-	//first try numer
-	var sol = this.getFactors(numer, function(f) {
-		var q = numer / f;
-		var r1 = self.findTrain(f/denomer, start, maxDepth--);
-		if(!r1) { return null;}
-		var r2 = self.findTrain(q, start, maxDepth--);
-		if(r2) {
-			return r1.concat(r2);
-		}
-		
-		return null;
-	});
 	
-	if(sol)
-		return sol;
-	
-	return this.getFactors(denomer, function(f) {
-		var q = numer / f;
-		var r1 = self.findTrain(numer/f, start, maxDepth--);
-		if(!r1) { return null;}
-		var r2 = self.findTrain(1/q, start, maxDepth--);
-		if(r2) {
-			return r1.concat(r2);
-		}
+	for(var i = numer-1; i >= 2; i--){
+		var quotient = numer/i;
 		
-		return null;
-	});
+		if(quotient % 1 === 0){
+			var r1 = this.findTrain(i/denomer, start, maxDepth--);
+			if(!r1) { continue;}
+			var r2 = this.findTrain(quotient, start, maxDepth--);
+			if(r2) {
+				return r1.concat(r2);
+			}
+		}
+	}
+	
+	for(var i = denomer-1; i >= 2; i--){
+		var quotient = numer/i;
+		
+		if(quotient % 1 === 0){
+			var r1 = this.findTrain(numer/i, start, maxDepth--);
+			if(!r1) { continue;}
+			var r2 = this.findTrain(1/quotient, start, maxDepth--);
+			if(r2) {
+				return r1.concat(r2);
+			}
+		}
+	}
+	
+	return null;
 }
 
 GearSolver.prototype.getFixedRingRatio = function(r, s, p) {
@@ -226,6 +231,13 @@ GearSolver.prototype.buildCache = function() {
 		return;
 	this.isbuilt = true;
 	
+	this.gearCache = [];
+	this.gearMap = {};
+	this.gearMap.R = {};
+	this.gearMap.S = {};
+	this.gearMap.P = {};
+	this.gearMap.spur = {};
+	
 	//R = 2P + S
 	//ratio = 1 + R/S
 	//P = (R-S)/2
@@ -238,7 +250,7 @@ GearSolver.prototype.buildCache = function() {
 				planetaryCompatible = false;
 			
 			var p = (r-s)/2;
-			if(p < 4 || (p % 1 !== 0)) //p has to be a whole number and less than min teeth
+			if(p < Math.max(4, this.options.minTeeth) || (p % 1 !== 0)) //p has to be a whole number and greater than min teeth
 				planetaryCompatible = false;
 			
 			if(planetaryCompatible) {
@@ -252,21 +264,8 @@ GearSolver.prototype.buildCache = function() {
 	}
 };
 
-GearSolver.prototype.getFactors = function(n, fn) {
-  for(var i = n-1; i >= 2; i--){
-    var quotient = n/i;
-	
-    if(quotient % 1 === 0){
-      var res = fn(i);
-	  if(res) {
-	  	return res;
-	  }
-    }
-  }
-  return null;
-};
-
 function GearSolverCtrl(GearSolver, $scope, $http) {
+	var gs = GearSolver;
 	$scope.options = {
 		timeout:10000, //millis
 		precision:4, //decimal points
@@ -290,12 +289,12 @@ function GearSolverCtrl(GearSolver, $scope, $http) {
 		$scope.isStale = true;
 	}, true);
 	
-	$scope.$watch('minTeeth', function(){
-		GearSolver.isbuilt = false;
+	$scope.$watch('options.minTeeth', function(){
+		gs.isbuilt = false;
 	});
 	
-	$scope.$watch('maxTeeth', function(){
-		GearSolver.isbuilt = false;
+	$scope.$watch('options.maxTeeth', function(){
+		gs.isbuilt = false;
 	});
 	
 	$scope.solve = function() {
@@ -303,27 +302,10 @@ function GearSolverCtrl(GearSolver, $scope, $http) {
 		$scope.isStale = false;
 		$scope.train = null;
 		$scope.isSolved = false;
-		GearSolver.options = $scope.options;
+		gs.options = $scope.options;
 		
-		$scope.train = GearSolver.solve($scope.options.ratio);
+		$scope.train = gs.solve($scope.options.ratio);
 		$scope.isSolved = true;
-	};
-	
-	$scope.render = function() {
-		if(!$scope.train)
-			return null;
-		
-		//This isn't properly done in the angular way, but it's utilizing 3rd party code and
-		//I don't have time to mess around with it. Feel free to submit a pull request to make it pretty :)
-		
-		var trainTxt = JSON.stringify($scope.train);
-		$http.get('gearRender.js').then(function(o){
-			
-			var jscadScript = 'function getGearTrain() { return ' + trainTxt + ';} \r\n' + o.data;
-			var proc = getProcessor();
-			proc.setJsCad(jscadScript, "GearSolver");
-			$scope.isRendering = false;
-		});
 	};
 }
 

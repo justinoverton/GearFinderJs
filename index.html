@@ -80,8 +80,7 @@
 						</span>
 					</li>
 				</ul>
-				<button type="button" class="btn btn-default" ng-disabled="isRendering" ng-click="render()">Render</button>
-				<gs-svg train="train"></gs-svg>
+				<!--<gs-svg train="train"></gs-svg>-->
 			</div>
 		</div>
 	</div>
@@ -97,77 +96,6 @@
 	<script src="gearSolver.js"></script>
 	
 	<script type="text/javascript">
-		/*
-		var gProcessor=null;
-		// Show all exceptions to the user:
-		OpenJsCad.AlertUserOfUncaughtExceptions();
-		function getProcessor()
-		{
-			if(gProcessor)
-				return gProcessor;
-			var viewerOptions = {
-				drawAxes: false,
-				rotateZX: false,
-				rotateXY: false
-			}
-			gProcessor = new OpenJsCad.Processor(document.getElementById("viewer"), viewerOptions);
-			//gProcessor.setDebugging(true);
-			return gProcessor;
-		}
-		$(document).ready(function(){
-			var g = new Gear({
-					circularPitch: 8,
-					pressureAngle: 20,
-					clearance: 0.05,
-					backlash: 0.05,
-					toothCount: 30,
-					centerHoleDiameter: 4,
-					profileShift: -0,
-					qualitySettings: 3,
-					qualitySettings: {resolution: 10, stepsPerToothAngle: 3}
-				}).getZeroedShape();
-			
-			var bounds = g.getBounds();
-			
-			var w = Math.abs(bounds[0].x) + Math.abs(bounds[1].x);
-			var h = Math.abs(bounds[0].y) + Math.abs(bounds[1].y);
-			
-			var dx = 0;
-			var dy = 0;
-			
-			if(bounds[0].x < 0)
-				dx = Math.abs(bounds[0].x);
-			if(bounds[0].y < 0)
-				dy = Math.abs(bounds[0].y);
-			
-			var svg = $('<svg version="1.1" xmlns="http://www.w3.org/2000/svg">')
-				.attr('width', w)
-				.attr('height', h);
-			
-			if(dx || dy)
-				svg.attr('transform', 'translate(' + dx + ', ' + dy + ')');
-			
-			g.getOutlinePaths().map(function(path) {
-				console.log(path);
-				var numpoints_closed = path.points.length + (path.closed ? 1 : 0);
-				var p = path.closed ? $('<polygon stroke="black" fill="transparent">') : $('<polyline stroke="black" fill="none">');
-				var ln = [];
-				
-				//str += "  0\nLWPOLYLINE\n  8\nOpenJsCad\n  90\n" + numpoints_closed + "\n  70\n" + (path.closed ? 1 : 0) + "\n";
-				for(var pointindex = 0; pointindex < path.points.length; pointindex++) {
-					//var pointindexwrapped = pointindex;
-					//if(pointindexwrapped >= path.points.length) pointindexwrapped -= path.points.length;
-					var point = path.points[pointindex];
-					ln.push(point.x.toFixed(7));
-					ln.push(point.y.toFixed(7));
-					//str += " 10\n" + point.x + "\n 20\n" + point.y + "\n 30\n0.0\n";
-				}
-				p.attr('points', ln.join(' '));
-				svg.append(p);
-			});
-			
-			$('#test').append(svg);
-		});*/
 		
 	</script>
 	

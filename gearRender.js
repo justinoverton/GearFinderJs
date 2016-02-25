@@ -249,6 +249,7 @@ var Gear = (function () {
 		return gearShape.rotateZ(-90);
 	}
 	Gear.prototype._createSingleTooth = function() {
+		console.log(this);
 		// create outer circle sector covering one tooth
 		var toothSectorPath = new CSG.Path2D([[0,0]], /* closed = */ false);
 		var toothSectorArc = CSG.Path2D.arc({
@@ -596,6 +597,7 @@ var Gear = (function () {
 	}
 	return Gear;
 })();
+
 // GearSet class
 var GearSet = (function () {
 	function GearSet(gears, id, type) {
