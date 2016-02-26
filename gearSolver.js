@@ -277,9 +277,9 @@ function GearSolverCtrl(GearSolver, $scope, $http) {
 		allowFixedPlanet:true,
 		allowSpur:true,
 		ratio: 3.4,
-		minCircularPitch: 8,
+		minCircularPitch: .5,
 		pressureAngle: 20,
-		centerHoleDiameter: 4
+		centerHoleDiameter: 0.25
 	};
 	
 	$scope.isStale = true;
@@ -315,36 +315,39 @@ function GearSolverCtrl(GearSolver, $scope, $http) {
 		for(var i=0; i<$scope.train.length; i++) {
 			var g = $scope.train[i];
 			
+			var cp = $scope.options.minCircularPitch * 90; //svg w3c says 90px per inch
+			var hole = $scope.options.centerHoleDiameter * 90;
+			
 			if(g.type == 'planetary') {
 				
 				g.gears = {
 					ring: new Gear({
 			      			toothCount: -g.r,
-							circularPitch: $scope.options.minCircularPitch,
+							circularPitch: cp,
 							pressureAngle: $scope.options.pressureAngle,
 							clearance: 0.05,
 							backlash: 0.05,
-							centerHoleDiameter: $scope.options.centerHoleDiameter,
+							centerHoleDiameter: hole,
 							profileShift: -0,
 							qualitySettings: {resolution: 60, stepsPerToothAngle: 3}
 						}),
 					planet: new Gear({
 			      			toothCount: g.s,
-							circularPitch: $scope.options.minCircularPitch,
+							circularPitch: cp,
 							pressureAngle: $scope.options.pressureAngle,
 							clearance: 0.05,
 							backlash: 0.05,
-							centerHoleDiameter: 2,
+							centerHoleDiameter: hole,
 							profileShift: -0,
 							qualitySettings: {resolution: 30, stepsPerToothAngle: 3}
 						}),
 					sun: new Gear({
 			      			toothCount: g.p,
-							circularPitch: $scope.options.minCircularPitch,
+							circularPitch: cp,
 							pressureAngle: $scope.options.pressureAngle,
 							clearance: 0.05,
 							backlash: 0.05,
-							centerHoleDiameter: $scope.options.centerHoleDiameter,
+							centerHoleDiameter: hole,
 							profileShift: -0,
 							qualitySettings: {resolution: 30, stepsPerToothAngle: 3}
 						})
@@ -354,21 +357,21 @@ function GearSolverCtrl(GearSolver, $scope, $http) {
 				g.gears = {
 					a: new Gear({
 			      			toothCount: g.a,
-							circularPitch: $scope.options.minCircularPitch,
+							circularPitch: cp,
 							pressureAngle: $scope.options.pressureAngle,
 							clearance: 0.05,
 							backlash: 0.05,
-							centerHoleDiameter: $scope.options.centerHoleDiameter,
+							centerHoleDiameter: hole,
 							profileShift: -0,
 							qualitySettings: {resolution: 30, stepsPerToothAngle: 3}
 						}),
 					b: new Gear({
 			      			toothCount: g.b,
-							circularPitch: $scope.options.minCircularPitch,
+							circularPitch: cp,
 							pressureAngle: $scope.options.pressureAngle,
 							clearance: 0.05,
 							backlash: 0.05,
-							centerHoleDiameter: $scope.options.centerHoleDiameter,
+							centerHoleDiameter: hole,
 							profileShift: -0,
 							qualitySettings: {resolution: 30, stepsPerToothAngle: 3}
 						})

@@ -63,7 +63,7 @@ Some modifications (can be compared against github) by Justin Overton
 						// convert circular pitch to diametral pitch
 						this.diametralPitch = Math.PI / this.circularPitch;
 					}
-					else if (this.circularPitch) {
+					else if (this.diametralPitch) {
 						// convert diametral pitch to circular pitch
 						this.circularPitch = Math.PI / this.diametralPitch;
 					}
@@ -106,7 +106,7 @@ Some modifications (can be compared against github) by Justin Overton
 					
 				}
 				Gear.prototype.getZeroedShape = function() {
-					// return the gear shape center on the origin and rotation angle 0.
+					// return the gear shape center on the origin and rotation angle 0.;
 					if (this.zeroedShape == null) {
 						this.zeroedShape = this._createZeroedShape();
 					}
@@ -542,11 +542,11 @@ Some modifications (can be compared against github) by Justin Overton
 					if(this.svg)
 						return this.svg;
 					
-					var wh = (this.outerRadius * 3).toFixed(7);
+					var wh = (this.outerRadius * 3) / 90 * 25.4; //for whatever reason tinker cad just always treats the units a millimeters
 					
-					var svgBuilder = ['<svg version="1.0" width="', wh, '" height="', wh, '" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">'];
-					
-					svgBuilder.push('<g transform="translate(', (wh/2).toFixed(7), (wh/2).toFixed(7), ')">');
+					//viewbox="0 0 ' + (wh/90) + ' ' + (wh/90) + '"' + (wh/90) + '" height="' + wh + 'widthxmlns:xlink="http://www.w3. //viewbox="0 0 ' + (wh/90) + ' ' + (wh/90) + '"
+					var svgBuilder = ['<svg version="1.0" width="' + wh + '" height="' + wh + '" xmlns="http://www.w3.org/2000/svg" >'];
+					svgBuilder.push('<g transform="translate(', (wh/2), (wh/2), ')">');
 					var isFirst = true;
 					this.getZeroedShape().getOutlinePaths().map(function(path) {
 						if(isFirst){
@@ -558,8 +558,8 @@ Some modifications (can be compared against github) by Justin Overton
 						
 						for(var pointindex = 0; pointindex < path.points.length; pointindex++) {
 							var point = path.points[pointindex];
-							svgBuilder.push(point.x.toFixed(7));
-							svgBuilder.push(point.y.toFixed(7));
+							svgBuilder.push(point.x/90*25.4); //was multiplied by 90 because the builder has issues with small values.... then convert to millis
+							svgBuilder.push(point.y/90*25.4);
 						}
 						
 						svgBuilder.push('" />');

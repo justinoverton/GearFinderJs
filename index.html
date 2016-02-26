@@ -16,6 +16,7 @@
 		display: block;
 		margin-left:auto;
 		margin-right:auto;
+		max-width: 150px;
 	}
 	
 	[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
@@ -68,7 +69,7 @@
 			    <input type="number" class="form-control input-sm" id="maxTeeth" min="5" step="1" ng-model="options.maxTeeth" />
 			  </div>
 			  <div class="form-group">
-			    <label for="minCircularPitch">Min Circular Pitch (this describes the tooth size)</label>
+			    <label for="minCircularPitch">Circular Pitch (this describes the tooth size)</label>
 			    <input type="number" class="form-control input-sm" id="minCircularPitch" step="0.00001" ng-model="options.minCircularPitch" />
 			  </div>
 			  <div class="form-group">
@@ -76,7 +77,7 @@
 			    <input type="number" class="form-control input-sm" id="pressureAngle" step="0.00001" ng-model="options.pressureAngle" />
 			  </div>
 			  <div class="form-group">
-			    <label for="centerHoleDiameter">Center Hole Diameter</label>
+			    <label for="centerHoleDiameter">Center Hole Diameter (inches)</label>
 			    <input type="number" class="form-control input-sm" id="centerHoleDiameter" step="0.00001" ng-model="options.centerHoleDiameter" />
 			  </div>
 			  <div class="checkbox">
@@ -103,7 +104,8 @@
 				<div ng-show="train">
 					<p>
 						<strong>Solution for a compound gear train with the ratio {{options.ratio}}</strong><br />
-						Each row is a single set of gears that should be compounded into the next set
+						Each row is a single set of gears that should be compounded into the next set. 
+						(Thumbnails are scaled to fit and sizes are not relative to eachother)
 					</p>
 					<ul ng-repeat="g in train track by $index">
 						<li>
