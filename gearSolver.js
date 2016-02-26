@@ -109,7 +109,7 @@ GearSolver.prototype.findTrain = function(ratio, start, maxDepth) {
 	1.04 * (2/1) = 1.04 * 2) = 2.08
 	*/
 	
-	for(var i = numer-1; i >= 2; i--){
+	for(var i = 2; i <  numer; i++){
 		var quotient = numer/i;
 		
 		if(quotient % 1 === 0){
@@ -122,7 +122,7 @@ GearSolver.prototype.findTrain = function(ratio, start, maxDepth) {
 		}
 	}
 	
-	for(var i = denomer-1; i >= 2; i--){
+	for(var i = 2; i <  denomer; i++){
 		var quotient = numer/i;
 		
 		if(quotient % 1 === 0){
@@ -269,17 +269,19 @@ function GearSolverCtrl(GearSolver, $scope, $http) {
 	$scope.options = {
 		timeout:10000, //millis
 		precision:4, //decimal points
-		minTeeth:4,
+		minTeeth:8,
 		maxTeeth:100,
 		maxDepth:5,
 		allowFixedRing:true,
 		allowFixedSun:true,
 		allowFixedPlanet:true,
 		allowSpur:true,
-		ratio: 3.4
+		ratio: 3.4,
+		minCircularPitch: 8,
+		pressureAngle: 20,
+		centerHoleDiameter: 4
 	};
 	
-	$scope.cacheValid = false;
 	$scope.isStale = true;
 	$scope.train = null;
 	$scope.isSolved = false;
@@ -306,33 +308,84 @@ function GearSolverCtrl(GearSolver, $scope, $http) {
 		
 		$scope.train = gs.solve($scope.options.ratio);
 		$scope.isSolved = true;
+		
+		if($scope.train == null)
+			return;
+		
+		for(var i=0; i<$scope.train.length; i++) {
+			var g = $scope.train[i];
+			
+			if(g.type == 'planetary') {
+				
+				g.gears = {
+					ring: new Gear({
+			      			toothCount: -g.r,
+							circularPitch: $scope.options.minCircularPitch,
+							pressureAngle: $scope.options.pressureAngle,
+							clearance: 0.05,
+							backlash: 0.05,
+							centerHoleDiameter: $scope.options.centerHoleDiameter,
+							profileShift: -0,
+							qualitySettings: {resolution: 60, stepsPerToothAngle: 3}
+						}),
+					planet: new Gear({
+			      			toothCount: g.s,
+							circularPitch: $scope.options.minCircularPitch,
+							pressureAngle: $scope.options.pressureAngle,
+							clearance: 0.05,
+							backlash: 0.05,
+							centerHoleDiameter: 2,
+							profileShift: -0,
+							qualitySettings: {resolution: 30, stepsPerToothAngle: 3}
+						}),
+					sun: new Gear({
+			      			toothCount: g.p,
+							circularPitch: $scope.options.minCircularPitch,
+							pressureAngle: $scope.options.pressureAngle,
+							clearance: 0.05,
+							backlash: 0.05,
+							centerHoleDiameter: $scope.options.centerHoleDiameter,
+							profileShift: -0,
+							qualitySettings: {resolution: 30, stepsPerToothAngle: 3}
+						})
+				};
+			} else {
+				
+				g.gears = {
+					a: new Gear({
+			      			toothCount: g.a,
+							circularPitch: $scope.options.minCircularPitch,
+							pressureAngle: $scope.options.pressureAngle,
+							clearance: 0.05,
+							backlash: 0.05,
+							centerHoleDiameter: $scope.options.centerHoleDiameter,
+							profileShift: -0,
+							qualitySettings: {resolution: 30, stepsPerToothAngle: 3}
+						}),
+					b: new Gear({
+			      			toothCount: g.b,
+							circularPitch: $scope.options.minCircularPitch,
+							pressureAngle: $scope.options.pressureAngle,
+							clearance: 0.05,
+							backlash: 0.05,
+							centerHoleDiameter: $scope.options.centerHoleDiameter,
+							profileShift: -0,
+							qualitySettings: {resolution: 30, stepsPerToothAngle: 3}
+						})
+				};
+			}
+		}
 	};
 }
 
 angular.module('GearSolverApp', [])
 	.factory('GearSolver', function(){ return new GearSolver();})
 	.controller('GearSolverCtrl', GearSolverCtrl)
-	.directive('gsSvg', function() {
-	  return {
-	    scope: {
-	    	train: '='
-	    },
-	    link: function (scope, element) {
-	      
-	      scope.$watchCollection('train', function(){
-	      	element.empty();
-	      	if(scope.train){
-		      	element.append(angular.element(GearRenderer.getSvg(scope.train, {
-						circularPitch: 8,
-						pressureAngle: 20,
-						clearance: 0.05,
-						backlash: 0.05,
-						centerHoleDiameter: 4,
-						profileShift: -0,
-						qualitySettings: {resolution: 30, stepsPerToothAngle: 3}
-					})));
-	      	}
-	      });
+	.config( [
+	    '$compileProvider',
+	    function( $compileProvider )
+	    {   
+	    	//Need to add this because the blob download links are getting blocked
+	        $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|ftp|mailto|chrome-extension|blob):/);
 	    }
-	  };
-	});
+	]);
