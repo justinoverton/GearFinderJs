@@ -88,6 +88,14 @@
 			  <button type="submit" class="btn btn-default" ng-disabled="!form.$valid" ng-click="solve()">
 			  	{{isStale ? '*' : ''}} Solve
 			  </button>
+			  <p>
+			  	Created by Justin Overton Copyright &copy; 2016.<br />
+			  	Source code can be found on GitHub at <a href="https://github.com/justinoverton/GearFinderJs">https://github.com/justinoverton/GearFinderJs</a>.<br />
+			  	I couldn't have done the rendering without Dr. Rainer Hessmer's gear rendering code from <a href="https://github.com/rainerhessmer/drh-horology/tree/BrowserBased/csg">https://github.com/rainerhessmer/drh-horology/tree/BrowserBased/csg</a>.
+			  	<br />
+			  	In the future I plan to auto adjust each gear's circular pitch/module/diametral pitch so that compound gears can connect within
+			  	a similar distance of one another within the train. Ex. a multi-stage planetary gear train would all have the same ring size.
+			  </p>
 			</form>
 			
 			<div class="col-md-9" ng-show="isSolved">
