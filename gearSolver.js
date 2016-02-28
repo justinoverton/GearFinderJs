@@ -350,7 +350,8 @@ function GearSolverCtrl(GearSolver, $scope, $http) {
 							centerHoleDiameter: hole,
 							profileShift: -0,
 							qualitySettings: {resolution: 30, stepsPerToothAngle: 3}
-						})
+						}),
+					assembly: new PlanetaryAssembly($scope.options.minCircularPitch, g.r, g.s, g.p, 3, $scope.options.centerHoleDiameter)
 				};
 			} else {
 				

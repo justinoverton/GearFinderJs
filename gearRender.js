@@ -546,20 +546,22 @@ Some modifications (can be compared against github) by Justin Overton
 					
 					//viewbox="0 0 ' + (wh/90) + ' ' + (wh/90) + '"' + (wh/90) + '" height="' + wh + 'widthxmlns:xlink="http://www.w3. //viewbox="0 0 ' + (wh/90) + ' ' + (wh/90) + '"
 					var svgBuilder = ['<svg version="1.0" width="' + wh + '" height="' + wh + '" xmlns="http://www.w3.org/2000/svg" >'];
-					svgBuilder.push('<g transform="translate(', (wh/2), (wh/2), ')">');
+					svgBuilder.push('<g transform="translate(', (wh/2),' ', (wh/2), ')">');
 					var isFirst = true;
 					this.getZeroedShape().getOutlinePaths().map(function(path) {
 						if(isFirst){
 							svgBuilder.push('<polygon stroke="black" fill="none" points="');
 							isFirst = false;
 						} else {
-							svgBuilder.push('<polygon stroke="black" fill="white" points="');
+							svgBuilder.push('<polygon stroke="black" fill="none" points="');
 						}
 						
 						for(var pointindex = 0; pointindex < path.points.length; pointindex++) {
 							var point = path.points[pointindex];
-							svgBuilder.push(point.x/90*25.4); //was multiplied by 90 because the builder has issues with small values.... then convert to millis
-							svgBuilder.push(point.y/90*25.4);
+							svgBuilder.push((point.x/90*25.4).toFixed(14)); //was multiplied by 90 because the builder has issues with small values.... then convert to millis
+							svgBuilder.push(' ');
+							svgBuilder.push((point.y/90*25.4).toFixed(14));
+							svgBuilder.push(' ');
 						}
 						
 						svgBuilder.push('" />');
@@ -568,9 +570,98 @@ Some modifications (can be compared against github) by Justin Overton
 					
 					svgBuilder.push('</svg>');
 					
-					this.svg = svgBuilder.join(' ');
+					this.svg = svgBuilder.join('');
 					return this.svg;
 				}
 				
 				return Gear;
 			})();
+			
+var PlanetaryAssembly = (function(){
+	
+	function PlanetaryAssembly(circularPitch, ringTeeth, sunTeeth, planetTeeth, numPlanets, holeSize) {
+		
+		//convert to metric module, it's simpler than circular pitch
+		var diametralPitch = Math.PI / circularPitch;
+		
+		this.module = 25.4 / diametralPitch;
+		this.ringTeeth = Math.abs(ringTeeth); //usually an internal gear is described by neg number
+		this.sunTeeth = sunTeeth;
+		this.planetTeeth = planetTeeth;
+		this.numPlanets = numPlanets;
+		this.holeSize = holeSize * 25.4; //to metric
+	}
+	
+	PlanetaryAssembly.prototype.svgUrl = function(){
+		if(this.blobUrl)
+			return this.blobUrl;
+		
+		this.blobUrl = URL.createObjectURL(this.toSvgBlob());
+		return this.blobUrl;
+	};
+	
+	PlanetaryAssembly.prototype.toSvgBlob = function(){
+		if(this.blob)
+			return this.blob;
+		
+		this.blob = new Blob(['<?xml version="1.0"?>\r\n' + this.toSvg()], {
+			type: "image/svg+xml"
+		});	
+		
+		return this.blob;
+	};
+	
+	PlanetaryAssembly.prototype.toSvg = function() {
+		
+		if(this.svg)
+			return this.svg;
+		
+		//center distance:
+		//a = (z1 + z2)*m / 2
+		var a = (this.sunTeeth + this.planetTeeth) * this.module / 2;
+		
+		var pegRadius = this.holeSize / 2 - 0.6;
+		var holeRadius = this.holeSize / 2; //adds 0.6 clearance to the hole
+		
+		var carrierRadius = a + holeRadius + 2; //2mm clearence on each side
+		
+		var degreesPerPlanet = 360 / this.numPlanets;
+		
+		var w = (carrierRadius * 2 + 6) * 2;
+		
+		var svgBuilder = ['<svg version="1.0" width="' + w + '" height="' + w + '" xmlns="http://www.w3.org/2000/svg" >'];
+		svgBuilder.push(['<g id="carrierBottom" transform="translate(', carrierRadius,' ', carrierRadius, ')">'].join(''));
+		
+		svgBuilder.push(['<circle stroke="black" fill="none" cx="0" cy="0" r="', carrierRadius, '" />'].join(''));
+		svgBuilder.push(['<circle id="sunPeg" stroke="black" fill="none" cx="0" cy="0" r="', pegRadius, '" />'].join(''));
+		
+		for(var i=0; i<this.numPlanets; i++) {
+			
+			svgBuilder.push(['<circle id="planetPeg' + i + '" transform="rotate(', degreesPerPlanet*i, ' 0 0)" stroke="black" fill="none" cx="0" cy="', a, '" r="', pegRadius, '" />'].join(''));
+			
+		}
+		
+		svgBuilder.push('</g>');
+		
+		svgBuilder.push(['<g id="carrierTop" transform="translate(', carrierRadius * 3 + 6 ,' ', carrierRadius, ')">'].join(''));
+		
+		svgBuilder.push(['<circle stroke="black" fill="none" cx="0" cy="0" r="', carrierRadius, '" />'].join(''));
+		svgBuilder.push(['<circle id="sunHole" stroke="black" fill="none" cx="0" cy="0" r="', holeRadius, '" />'].join(''));
+		
+		for(var i=0; i<this.numPlanets; i++) {
+			
+			svgBuilder.push(['<circle id="planetHole' + i + '" transform="rotate(', degreesPerPlanet*i, ' 0 0)" stroke="black" fill="none" cx="0" cy="', a, '" r="', holeRadius, '" />'].join(''));
+			
+		}
+		
+		svgBuilder.push('</g>');
+		
+		svgBuilder.push('</svg>');
+		
+		this.svg = svgBuilder.join('');
+		return this.svg;
+	}
+	
+	return PlanetaryAssembly;
+	
+})();

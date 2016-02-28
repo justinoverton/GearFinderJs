@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Gear Solver</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+	<link rel="stylesheet" href="OpenJsCad/openjscad.css" type="text/css">
+	<style>
+	
+	
+	</style>
+</head>
+<body ng-app="GearSolverApp">
+	<div id="container">
+	</div>
+	<script type="text/javascript" src="OpenJsCad/lightgl.js" ></script>
+	<script type="text/javascript" src="OpenJsCad/csg.js"></script>
+	<script type="text/javascript" src="OpenJsCad/openjscad.js"></script>
+    
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
+	<script src="gearRender.js"></script>
+	<script src="gearSolver.js"></script>
+	
+	<script type="text/javascript">
+		
+		var pa = new PlanetaryAssembly(.25, 38, 12, 13, 3, .25);
+		
+		var a = $('<img>').attr('src', pa.svgUrl());
+		$('#container').append(a);
+		
+	</script>
+	
+</body>
+</html>
